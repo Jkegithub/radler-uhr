@@ -277,10 +277,19 @@ header p {
     background: linear-gradient(135deg, var(--secondary-color, #3498db), #2980b9);
 }
 
-.theme-selector {
-    margin-bottom: 20px;
+.theme-selector.carre {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    justify-items: center;
+    align-items: center;
+    width: max-content;
+    margin: 0 auto 20px auto;
+}
+.theme-selector.carre > div {
     display: flex;
-    justify-content: center;
+    flex-direction: row;
     gap: 10px;
 }
 
