@@ -201,21 +201,25 @@ class EnhancedDigitalClockGift {
     }
 
     playChime() {
-        if (this.audio.readyState >= 2) { // HAVE_CURRENT_DATA oder höher
-            this.audio.currentTime = 0; // Zurück zum Anfang
-            const playPromise = this.audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.warn('Audio-Wiedergabe fehlgeschlagen:', error);
-                    this.showAudioError();
-                });
-            }
-        } else {
-            console.warn('Audio noch nicht bereit');
-        }
-    }
+        const now = new Date();
+        let hour = now.getHours();
+        if (hour === 0) hour = 24; // Mitternacht = 24 Schläge
 
+        let count = 0;
+        const play = () => {
+            if (count < hour) {
+                if (this.audio.readyState >= 2) {
+                    this.audio.currentTime = 0;
+                    this.audio.play();
+                }
+                count++;
+                // Nächster Schlag nach Audio-Länge (z.B. 2 Sekunden), ggf. anpassen!
+                setTimeout(play, 2000);
+            }
+        };
+        play();
+    }
+    
     playBirthdayMessage() {
         if (this.messageAudio.readyState >= 2) {
             this.messageAudio.currentTime = 0;
