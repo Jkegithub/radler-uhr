@@ -1,5 +1,4 @@
-/* Erweiterte Styles f�r die digitale Radler-Uhr */
-/* Reset und Basis-Styling */
+/* Erweiterte Styles für die digitale Radler-Uhr */
 * {
     margin: 0;
     padding: 0;
@@ -17,7 +16,7 @@ body {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    color: var(--primary-color, #2c3e50);
+    color: var(--primary-color);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -48,9 +47,9 @@ body {
 header h1 {
     font-size: 2.5em;
     margin-bottom: 10px;
-    color: var(--primary-color, #2c3e50);
+    color: var(--primary-color);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(45deg, var(--primary-color, #2c3e50), var(--secondary-color, #3498db));
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -77,7 +76,7 @@ header p {
 .clock-face {
     width: 100%;
     height: 100%;
-    border: 8px solid var(--secondary-color, #34495e);
+    border: 8px solid var(--secondary-color);
     border-radius: 50%;
     background: radial-gradient(circle, #ecf0f1, #bdc3c7);
     position: relative;
@@ -88,7 +87,7 @@ header p {
     position: absolute;
     font-size: 24px;
     font-weight: bold;
-    color: var(--primary-color, #2c3e50);
+    color: var(--primary-color);
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     z-index: 2;
 }
@@ -100,7 +99,7 @@ header p {
 
 .hand {
     position: absolute;
-    background: var(--primary-color, #2c3e50);
+    background: var(--primary-color);
     transform-origin: bottom center;
     border-radius: 3px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -114,7 +113,7 @@ header p {
     left: 50%;
     bottom: 50%;
     margin-left: -3px;
-    background: linear-gradient(to top, var(--primary-color, #2c3e50), var(--secondary-color, #34495e));
+    background: linear-gradient(to top, var(--primary-color), var(--secondary-color));
 }
 
 .minute-hand {
@@ -123,7 +122,7 @@ header p {
     left: 50%;
     bottom: 50%;
     margin-left: -2px;
-    background: linear-gradient(to top, var(--primary-color, #2c3e50), var(--secondary-color, #34495e));
+    background: linear-gradient(to top, var(--primary-color), var(--secondary-color));
 }
 
 .second-hand {
@@ -132,16 +131,15 @@ header p {
     left: 50%;
     bottom: 50%;
     margin-left: -1px;
-    background: linear-gradient(to top, #e74c3c, var(--accent-color, #c0392b));
+    background: linear-gradient(to top, #e74c3c, var(--accent-color));
     z-index: 4;
-    /* animation: tick 1s infinite;  <-- ENTFERNT! */
 }
 
 .center-dot {
     position: absolute;
     width: 16px;
     height: 16px;
-    background: radial-gradient(circle, var(--primary-color, #2c3e50), var(--secondary-color, #34495e));
+    background: radial-gradient(circle, var(--primary-color), var(--secondary-color));
     border-radius: 50%;
     top: 50%;
     left: 50%;
@@ -155,24 +153,16 @@ header p {
     position: absolute;
     left: 50%;
     top: 50%;
-    font-size: 2em;
+    font-size: 3.5em;
     transform: translate(-50%, -50%);
-    /* Startposition in der Mitte, wird durch JS/CSS überschrieben */
     pointer-events: none;
     z-index: 10;
-}
-
-@keyframes bikeMove {
-    0%, 100% { transform: translateX(0px) rotate(0deg); }
-    25% { transform: translateX(-10px) rotate(-5deg); }
-    50% { transform: translateX(0px) rotate(0deg); }
-    75% { transform: translateX(10px) rotate(5deg); }
 }
 
 .digital-time {
     font-size: 2.5em;
     font-weight: bold;
-    color: var(--primary-color, #2c3e50);
+    color: var(--primary-color);
     background: linear-gradient(135deg, rgba(52, 73, 94, 0.1), rgba(44, 62, 80, 0.1));
     padding: 15px 30px;
     border-radius: 15px;
@@ -180,7 +170,7 @@ header p {
     font-family: 'Courier New', monospace;
     letter-spacing: 3px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border: 2px solid var(--secondary-color, rgba(52, 73, 94, 0.2));
+    border: 2px solid var(--secondary-color);
 }
 
 .controls {
@@ -192,12 +182,12 @@ header p {
 }
 
 .control-btn {
-    background: linear-gradient(135deg, var(--secondary-color, #3498db), #2980b9);
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 14px 28px;
     border-radius: 25px;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -248,7 +238,7 @@ header p {
 
 .volume-control label {
     font-weight: bold;
-    color: var(--primary-color, #2c3e50);
+    color: var(--primary-color);
 }
 
 .volume-control input[type="range"] {
@@ -265,7 +255,7 @@ header p {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--secondary-color, #3498db), #2980b9);
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
@@ -274,44 +264,47 @@ header p {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--secondary-color, #3498db), #2980b9);
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
 }
 
-.theme-selector.carre {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
-    justify-items: center;
-    align-items: center;
-    width: max-content;
-    margin: 0 auto 20px auto;
-}
-.theme-selector.carre > div {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
+.view-selector.carre {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
 }
 
-.theme-btn {
+.view-selector .three-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.view-selector .full-width-center {
+  text-align: center;
+  margin-top: 10px;
+}
+
+
+.view-btn {
     border: 2px solid transparent;
     background: rgba(255,255,255,0.7);
-    color: var(--primary-color, #2c3e50);
-    padding: 8px 18px;
+    color: var(--primary-color);
+    padding: 14px 28px;
     border-radius: 20px;
-    font-size: 1em;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: bold;
 }
 
-.theme-btn:hover {
-    background: var(--secondary-color, #3498db);
+.view-btn:hover {
+    background: var(--secondary-color);
     color: #fff;
 }
 
-.theme-btn.active {
-    border-color: var(--accent-color, #2ecc71);
+.view-btn.active {
+    border-color: var(--accent-color);
     background: rgba(46, 204, 113, 0.2);
 }
 
@@ -322,9 +315,9 @@ header p {
 }
 
 @keyframes chimeGlow {
-    0% { box-shadow: 0 0 0 0 var(--accent-color, #2ecc71);}
-    50% { box-shadow: 0 0 40px 10px var(--accent-color, #2ecc71);}
-    100% { box-shadow: 0 0 0 0 var(--accent-color, #2ecc71);}
+    0% { box-shadow: 0 0 0 0 var(--accent-color);}
+    50% { box-shadow: 0 0 40px 10px var(--accent-color);}
+    100% { box-shadow: 0 0 0 0 var(--accent-color);}
 }
 
 .clock-face.chiming {
@@ -332,16 +325,15 @@ header p {
 }
 
 @keyframes celebration {
-    0% { box-shadow: 0 0 0 0 var(--accent-color, #2ecc71);}
-    50% { box-shadow: 0 0 40px 10px var(--accent-color, #2ecc71);}
-    100% { box-shadow: 0 0 0 0 var(--accent-color, #2ecc71);}
+    0% { box-shadow: 0 0 0 0 var(--accent-color);}
+    50% { box-shadow: 0 0 40px 10px var(--accent-color);}
+    100% { box-shadow: 0 0 0 0 var(--accent-color);}
 }
 
 .container.celebrating {
     animation: celebration 1s ease;
 }
 
-/* Tooltip Styles */
 .tooltip {
     position: relative;
     display: inline-block;
@@ -369,15 +361,15 @@ header p {
     visibility: visible;
     opacity: 1;
 }
+
 .gradient-text {
-    background: linear-gradient(45deg, var(--primary-color, #2c3e50), var(--secondary-color, #3498db));
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .emoji {
-    /* Emojis immer bunt anzeigen */
     -webkit-background-clip: initial;
     -webkit-text-fill-color: initial;
     background-clip: initial;
