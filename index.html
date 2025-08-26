@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digitale Radler-Uhr - Geburtstagsgeschenk</title>
-    <link rel="stylesheet" href="enhanced-style.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚴‍♂️</text></svg>">
 </head>
 <body>
-    <div class="container" id="main-container">
+
+    <div class="view-selector">
+        <button class="view-btn active" data-view="standard">🚴 Radler-Uhr</button>
+        <button class="view-btn" data-view="landscape">🌄 Landschaft</button>
+        <button class="view-btn" data-view="journey">🎶 Klangreise</button>
+        <button class="view-btn" data-view="fun">🤩 Überraschung</button>
+    </div>
+
+    <div class="container view-container" id="main-container">
         <header>
             <h1>
                 <span class="emoji">🚴‍♂️</span>
@@ -17,23 +25,6 @@
             </h1>
             <p>Ein besonderes Geschenk für einen besonderen Freund</p>
         </header>
-
-        <div class="view-selector carre">
-            <div class="three-buttons">
-                <button class="view-btn active" data-view="standard">🚴 Radler-Uhr</button>
-                <button class="view-btn" data-view="landscape">🌄 Landschaft</button>
-                <button class="view-btn" data-view="journey">🎶 Klangreise</button>
-            </div>
-            <div class="full-width-center">
-                <button class="view-btn" data-view="fun">🤩 Überraschung</button>
-            </div>
-        </div>
-
-
-        <!-- Landscape-Container -->
-        <div id="landscape-container" style="display:none; margin-top:20px;">
-            <div id="landscape-slideshow" style="width:100%; height:500px; border-radius:15px; overflow:hidden; position:relative;"></div>
-        </div>
 
         <div class="clock-container">
             <div class="clock">
@@ -51,7 +42,6 @@
                     <div class="bike-decoration" id="bike-decoration">🚴‍♂️</div>
                 </div>
             </div>
-
             <div class="digital-time" id="digital-time">00:00:00</div>
         </div>
 
@@ -60,14 +50,11 @@
                 <button id="chime-toggle" class="control-btn">🔔 Stundenschlag: AN</button>
                 <span class="tooltiptext">Tastenkürzel: C</span>
             </div>
-
             <div class="tooltip">
                 <button id="test-chime" class="control-btn">🎵 Klang testen</button>
                 <span class="tooltiptext">Tastenkürzel: T</span>
             </div>
-
             <button id="play-message" class="control-btn audio-message-btn">🎤 Persönliche Nachricht</button>
-
             <div class="volume-control">
                 <label for="volume">🔊 Lautstärke:</label>
                 <input type="range" id="volume" min="0" max="100" value="50">
@@ -78,16 +65,16 @@
         <div class="message">
             <h2>🎉 Herzlichen Glückwunsch zum "ersten" Geburtstag im Ruhestand! 🎉</h2>
             <p>
-                Diese digitale Uhr vereint deine beiden Leidenschaften: 
-                das Radfahren und die wunderbaren Klänge klassischer Uhren. 
-                Möge sie dir viele schöne Stunden bereiten und dich an 
+                Diese digitale Uhr vereint deine beiden Leidenschaften:
+                das Radfahren und die wunderbaren Klänge klassischer Uhren.
+                Möge sie dir viele schöne Stunden bereiten und dich an
                 all deine schönen Radtouren erinnern!
             </p>
             <p>
                 <strong>Besondere Features:</strong><br>
                 • Stündlicher Glockenschlag mit authentischen Big Ben Klängen<br>
                 • Animierte analoge Uhr mit Fahrrad-Dekoration<br>
-                • Vier Ansichtsmodi: Radler-Uhr, Landschaft, Klangreise, Überraschung<br>
+                • Vier Ansichten: Radler-Uhr, Landschaft, Klangreise, Überraschung<br>
                 • Persönliche Sprachnachricht<br>
                 • Tastaturkürzel für einfache Bedienung<br>
                 • Wunderschöne Radfahrer-Landschaft im Hintergrund
@@ -97,8 +84,7 @@
                 von Jürgen aus dem Tal ❤️
             </p>
         </div>
-
-        <div class="instructions" style="margin-top:20px; padding:15px; background:rgba(52,152,219,0.1); border-radius:10px; font-size:14px;">
+         <div class="instructions" style="margin-top:20px; padding:15px; background:rgba(52,152,219,0.1); border-radius:10px; font-size:14px;">
             <h3>🎮 Bedienungsanleitung:</h3>
             <p>
                 <strong>Tastaturkürzel:</strong> C = Stundenschlag, T = Klang testen, ↑/↓ = Lautstärke<br>
@@ -109,22 +95,19 @@
         </div>
     </div>
 
-    <!-- Klangreise Container -->
-    <div id="journey-container" style="display:none; margin-top:20px;">
-        <iframe id="journey-frame" src="" width="100%" height="500" style="border:none; border-radius:15px;"></iframe>
+    <div class="view-container" id="landscape-container" style="display:none;">
+        <div id="landscape-slideshow"></div>
     </div>
 
-    <!-- Audio-Elemente -->
-    <audio id="chime-sound" preload="auto">
-        <source src="big-ben.mp3" type="audio/mpeg">
-        Ihr Browser unterstützt das Audio-Element nicht.
-    </audio>
+    <div id="journey-container" class="journey-overlay" style="display:none;">
+        <button id="close-journey" class="close-btn">&times;</button>
+        <iframe id="journey-frame" src="" width="100%" height="100%" allow="autoplay"></iframe>
+    </div>
 
-    <audio id="birthday-message" preload="auto">
-        <source src="birthday-message.wav" type="audio/wav">
-        Ihr Browser unterstützt das Audio-Element nicht.
-    </audio>
+    <audio id="chime-sound" preload="auto" src="big-ben.mp3"></audio>
+    <audio id="birthday-message" preload="auto" src="birthday-message.wav"></audio>
+    <audio id="midnight-sound" preload="auto" src="midnight-gong.mp3"></audio>
 
-    <script src="enhanced-script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
