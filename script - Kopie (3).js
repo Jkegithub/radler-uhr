@@ -12,13 +12,19 @@ class EnhancedDigitalClockGift {
     }
 
     initializeProperties() {
-        this.testTime = null;
-        this.realTimeStart = null;
-        this.fakeTimeStart = null;
+        this.testTime = null; 
+        // Für Echtzeit. Zum Testen mit Hochkomma: '23:59:50'
+        // this.testTime = '23:59:50'; 
+
+        this.realTimeStart = null;  // NEU
+        this.fakeTimeStart = null;  // NEU
         this.lastChimeHour = -1;
-        this.chimeEnabled = true;
+        this.chimeEnabled = true; // Standardwert, wird von loadSettings überschrieben
         this.landscapeInterval = null;
-        this.landscapeAnimationId = null;
+        // NEU: Für die Steuerung der neuen JS-Animation
+        this.landscapeAnimationId = null; 
+
+        // Sprüche und Fragen nur einmal definieren
         this.sprueche = [
             "Wer sein Rad liebt, der schiebt 🚲",
             "Ein Leben ohne Rad ist möglich, aber sinnlos 😅",
@@ -355,6 +361,7 @@ class EnhancedDigitalClockGift {
         document.getElementById('journey-container').style.display = 'none';
         document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewName));
 
+        // Stoppt die Landschaftsanimation sicher, wenn die Ansicht verlassen wird
         this.startOrStopLandscapeAnimation(false);
 
         switch (viewName) {
@@ -365,6 +372,7 @@ class EnhancedDigitalClockGift {
                 const landscapeContainer = document.getElementById('landscape-container');
                 landscapeContainer.style.display = 'block';
                 this.startLandscapeSlideshow();
+                // Startet die Animation erst, nachdem der Browser den Container gezeichnet hat
                 requestAnimationFrame(() => {
                     this.startOrStopLandscapeAnimation(true);
                 });
@@ -378,10 +386,82 @@ class EnhancedDigitalClockGift {
                 this.showRandomSurprise();
                 document.getElementById('main-container').style.display = 'block';
                 document.querySelector('.view-btn[data-view="standard"]').classList.add('active');
+                document.querySelector('.view-btn[data-view="fun"]').classList.remove('active');
                 break;
         }
     }
-    
+
+    // Die finale, funktionierende JavaScript-Animation
+    startOrStopLandscapeAnimation(start) {
+        const cyclist = document.getElementById('landscape-cyclist');
+        const container = document.getElementById('landscape-slideshow');
+
+        if (this.landscapeAnimationId) {
+            cancelAnimationFrame(this.landscapeAnimationId);
+            this.landscapeAnimationId = null;
+        }
+
+        if (!start || !cyclist || !container) {
+            if (cyclist) cyclist.style.opacity = '0';
+            return;
+        }
+
+        cyclist.style.opacity = '1';
+
+        const rect = container.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return; // Sicherheits-Check
+
+        let x = 0;
+        let y = rect.height - cyclist.offsetHeight;
+        let stage = 0; // 0=unten, 1=rechts, 2=oben, 3=links
+        const speed = 2;
+        const margin = 10; // 10px Abstand zum Rand
+
+        const animate = () => {
+            let transformString = '';
+
+            switch (stage) {
+                case 0: // Fährt nach rechts
+                    x += speed;
+                    transformString = `translate(${x}px, ${y}px) rotate(0deg)`;
+                    if (x >= rect.width - cyclist.offsetWidth - margin) {
+                        x = rect.width - cyclist.offsetWidth - margin;
+                        stage = 1;
+                    }
+                    break;
+                case 1: // Fährt nach oben
+                    y -= speed;
+                    transformString = `translate(${x}px, ${y}px) rotate(90deg)`;
+                    if (y <= margin) {
+                        y = margin;
+                        stage = 2;
+                    }
+                    break;
+                case 2: // Fährt nach links
+                    x -= speed;
+                    transformString = `translate(${x}px, ${y}px) rotate(180deg)`;
+                    if (x <= margin) {
+                        x = margin;
+                        stage = 3;
+                    }
+                    break;
+                case 3: // Fährt nach unten
+                    y += speed;
+                    transformString = `translate(${x}px, ${y}px) rotate(270deg)`;
+                    if (y >= rect.height - cyclist.offsetHeight - margin) {
+                        y = rect.height - cyclist.offsetHeight - margin;
+                        stage = 0;
+                    }
+                    break;
+            }
+
+            cyclist.style.transform = transformString;
+            this.landscapeAnimationId = requestAnimationFrame(animate);
+        };
+
+        this.landscapeAnimationId = requestAnimationFrame(animate);
+    }
+        
     startLandscapeSlideshow() {
         if (this.landscapeInterval) clearInterval(this.landscapeInterval);
         const container = document.getElementById('landscape-slideshow');
@@ -401,80 +481,6 @@ class EnhancedDigitalClockGift {
             container.style.backgroundImage = `url(${images[0]})`;
             this.landscapeInterval = setInterval(showNextImage, 8000);
         }
-    }
-    
-    startOrStopLandscapeAnimation(start) {
-        const cyclist = document.getElementById('landscape-cyclist');
-        const container = document.getElementById('landscape-slideshow');
-
-        if (this.landscapeAnimationId) {
-            cancelAnimationFrame(this.landscapeAnimationId);
-            this.landscapeAnimationId = null;
-        }
-
-        if (!start || !cyclist || !container) {
-            if (cyclist) cyclist.style.opacity = '0';
-            return;
-        }
-
-        const rect = container.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) return;
-
-        cyclist.style.opacity = '1';
-
-        const margin = 20;
-        const pathWidth = rect.width - margin * 2;
-        const pathHeight = rect.height - margin * 2;
-        const perimeter = (pathWidth + pathHeight) * 2;
-
-        let distance = 0;
-        const speed = 3;
-
-        // Startwinkel
-        let currentRotation = 0;
-
-        const animate = () => {
-            distance = (distance + speed) % perimeter;
-
-            let x = 0, y = 0;
-            let targetRotation = 0;
-            
-            const cyclistSize = 48; 
-
-            if (distance < pathWidth) {
-                // Etappe 1: Unten, fährt nach rechts
-                x = margin + distance;
-                y = rect.height - margin - cyclistSize;
-                targetRotation = 0; // KORRIGIERT
-            } else if (distance < pathWidth + pathHeight) {
-                // Etappe 2: Rechts, fährt nach oben
-                x = rect.width - margin - cyclistSize;
-                y = rect.height - margin - cyclistSize - (distance - pathWidth);
-                targetRotation = 270; // KORRIGIERT
-            } else if (distance < (pathWidth * 2) + pathHeight) {
-                // Etappe 3: Oben, fährt nach links
-                x = rect.width - margin - cyclistSize - (distance - (pathWidth + pathHeight));
-                y = margin;
-                targetRotation = 180; // KORRIGIERT
-            } else {
-                // Etappe 4: Links, fährt nach unten
-                x = margin;
-                y = margin + (distance - (pathWidth * 2 + pathHeight));
-                targetRotation = 90; // KORRIGIERT
-            }
-
-            // Sanfte Drehung (Interpolation)
-            let diff = targetRotation - currentRotation;
-            if (diff > 180) diff -= 360;
-            if (diff < -180) diff += 360;
-            currentRotation += diff * 0.02;
-
-            // Wende die Transformation an: IMMER gespiegelt, dann gedreht
-            cyclist.style.transform = `translate(${x}px, ${y}px) rotate(${currentRotation}deg) scaleX(-1)`;
-
-            this.landscapeAnimationId = requestAnimationFrame(animate);
-        };
-        this.landscapeAnimationId = requestAnimationFrame(animate);
     }
     
     showRandomSurprise() {
