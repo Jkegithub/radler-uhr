@@ -36,6 +36,10 @@ class EnhancedDigitalClockGift {
         this.milestone30Reached = false;
         this.milestone60Reached = false;
         this.milestone100Reached = false;
+        // NEU: Merkt sich, ob das Spiel gewonnen wurde
+        this.gameWon = false; 
+        // NEU: Merkt sich, ob die Ehrenrunde beendet ist
+        this.ehrenrundeCompleted = false; 
 
         // NEU: Zentrale Liste für alle Bilder der Slideshow
         // Hier pflegst du alle Bilder, die du im Ordner hast und zeigen möchtest.
@@ -188,6 +192,7 @@ class EnhancedDigitalClockGift {
         this.snoozeAudio = document.getElementById('snooze-sound');
         this.snoozingArmchair = document.getElementById('snoozing-armchair');
         this.progressAudio = document.getElementById('progress-sound');
+        this.victoryAudio = document.getElementById('victory-music');
     }
     
     loadSettings() {
@@ -214,6 +219,7 @@ class EnhancedDigitalClockGift {
         if (this.tickAudio) this.tickAudio.volume = mainVolume * 0.5; // Etwas leiser
         if (this.tackAudio) this.tackAudio.volume = mainVolume * 0.5; // Etwas leiser
         if (this.progressAudio) this.progressAudio.volume = mainVolume;
+        if (this.victoryAudio) this.victoryAudio.volume = mainVolume * 0.7;
         this.ambientSounds.forEach(sound => { if (sound) sound.volume = ambientVolume; });
         if (this.volumeDisplay) this.volumeDisplay.textContent = `${value}%`;
         localStorage.setItem('clockVolume', value);
@@ -513,7 +519,7 @@ class EnhancedDigitalClockGift {
         document.getElementById('journey-container').style.display = 'none';
         document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewName));
 
-        this.startOrStopLandscapeAnimation(false);
+        this.startOrStopLandscapeAnimation(false); // Stoppt immer die normale Animation
 
         switch (viewName) {
             case 'standard':
@@ -523,9 +529,21 @@ class EnhancedDigitalClockGift {
                 const landscapeContainer = document.getElementById('landscape-container');
                 landscapeContainer.style.display = 'block';
                 this.startLandscapeSlideshow();
-                requestAnimationFrame(() => {
-                    this.startOrStopLandscapeAnimation(true);
-                });
+                
+                // NEUE 3-STUFEN-LOGIK
+                if (this.gameWon) {
+                    if (this.ehrenrundeCompleted) {
+                        // Zustand 3: Spiel gewonnen, Ehrenrunde absolviert
+                        this.showSpecialAnimation({ title: 'Spiel beendet', text: 'Du hast schon gewonnen! :-)', counter: 'Lade die Seite neu für ein neues Spiel.' });
+                        document.getElementById('landscape-cyclist').style.opacity = '0'; // Radler ausblenden
+                    } else {
+                        // Zustand 2: Spiel gewonnen, starte Ehrenrunde
+                        requestAnimationFrame(() => { this.startEhrenrundeAnimation(); });
+                    }
+                } else {
+                    // Zustand 1: Normales Spiel starten
+                    requestAnimationFrame(() => { this.startOrStopLandscapeAnimation(true); });
+                }
                 break;
             case 'journey':
                 const journeyContainer = document.getElementById('journey-container');
@@ -567,10 +585,13 @@ class EnhancedDigitalClockGift {
             this.landscapeAnimationId = null;
         }
         if (this.snoozeAudio) this.snoozeAudio.pause();
+        if (this.victoryAudio) this.victoryAudio.pause(); // Stoppt auch die Siegermusik
+        
         // Radler und Sessel zurücksetzen/ausblenden
-        cyclist.style.display = 'block'; // Radler wieder sichtbar machen, falls ausgeblendet war
+        cyclist.style.display = 'block';
         cyclist.classList.remove('sleeping-cyclist');
-        if (this.snoozingArmchair) this.snoozingArmchair.style.display = 'none'; // Sessel ausblenden
+        cyclist.classList.remove('trophy'); // NEU: Trophäen-Klasse entfernen
+        if (this.snoozingArmchair) this.snoozingArmchair.style.display = 'none';
 
         if (!start || !cyclist || !container) {
             if(cyclist) cyclist.style.opacity = '0';
@@ -582,12 +603,23 @@ class EnhancedDigitalClockGift {
 
         cyclist.style.opacity = '1';
 
-        // Runden auf 0 zurücksetzen und Anzeige initialisieren
-        this.milestone30Reached = false;
-        this.milestone60Reached = false;
-        this.milestone100Reached = false;
-        this.landscapeLaps = 0;
-        this.updateLapCounter();
+        // --- NEUE LOGIK: EHRENRUNDE oder NORMALES SPIEL? ---
+        if (this.gameWon) {
+            // ** EHRENRUNDE STARTEN **
+            cyclist.textContent = '🏆'; // Radler wird zur Trophäe
+            cyclist.classList.add('trophy');
+            if (this.lapCounterElement) this.lapCounterElement.textContent = 'Ehrenrunde!';
+            if (this.victoryAudio) this.victoryAudio.play();
+            // Stoppt andere Ambiente-Sounds
+            this.ambientSounds.forEach(sound => { if(sound) sound.pause(); });
+        } else {
+            // ** NORMALES SPIEL STARTEN **
+            cyclist.textContent = '🚴‍♂️'; // Radler ist der Radler
+            this.landscapeLaps = 0;
+            this.milestone30Reached = false;
+            this.milestone60Reached = false;
+            this.updateLapCounter();
+        }
         
         const margin = 48; 
         // const cyclistSize = 48; 
@@ -608,40 +640,24 @@ class EnhancedDigitalClockGift {
         // Startwinkel für einen gespiegelten Radler, der nach rechts fährt
 
         const animate = () => {
-            // Wenn Ziel erreicht, Animation beenden und "GEWONNEN!"-Modus aktivieren
-            if (this.landscapeLaps >= this.slideshowImages.length && this.slideshowImages.length > 0) {
+            // "Gewonnen"-Logik, nur im normalen Spielmodus
+            if (!this.gameWon && this.landscapeLaps >= this.slideshowImages.length && this.slideshowImages.length > 0) {
                 cancelAnimationFrame(this.landscapeAnimationId);
-                this.landscapeAnimationId = null;
+                this.gameWon = true; // NEU: Setzt den Gewonnen-Status
 
-                // 1. "GEWONNEN!" anzeigen
-                this.showSpecialAnimation({ 
-                    title: 'Ziel erreicht!', 
-                    text: "GEWONNEN! 🎉", 
-                    counter: `Gesamt: ${this.landscapeLaps} Runden` 
-                });
-                
-                // 2. Fanfare spielen
-                if (this.fanfareAudio) {
-                    this.fanfareAudio.currentTime = 0;
-                    this.fanfareAudio.play().catch(e => console.error("Fanfare Play Error:", e));
-                }
-
-                // 3. Radler entfernen und schnarchenden Sessel einblenden
-                cyclist.style.display = 'none'; // Radler verschwindet
-                if (this.snoozingArmchair) {
-                    this.snoozingArmchair.style.display = 'block'; // Sessel erscheint
-                }
-                if (this.snoozeAudio) {
-                    this.snoozeAudio.currentTime = 0;
-                    this.snoozeAudio.play().catch(e => console.error("Snooze Play Error:", e));
-                }
-                return; // Animation beenden
+                this.showSpecialAnimation({ title: 'Ziel erreicht!', text: "GEWONNEN! 🎉", counter: `Gesamt: ${this.landscapeLaps} Runden` });
+                if (this.fanfareAudio) this.fanfareAudio.play();
+                cyclist.style.display = 'none';
+                if (this.snoozingArmchair) this.snoozingArmchair.style.display = 'block';
+                if (this.snoozeAudio) this.snoozeAudio.play();
+                return;
             }
 
             distance = (distance + speed) % perimeter;
             
+            // Runden zählen, nur im normalen Spielmodus
             const remainingDistance = perimeter - distance;
-            if (remainingDistance <= speed && distance > 0) {
+            if (!this.gameWon && remainingDistance < speed && distance > 0) {
                 this.landscapeLaps++;
                 this.updateLapCounter();
             }
@@ -669,7 +685,6 @@ class EnhancedDigitalClockGift {
                 x = pathLeft;
                 y = pathTop + (distance - (pathWidth * 2 + pathHeight));
                 targetRotation = 90; // KORRIGIERTE DREHUNG
-
             }
 
             // Sanfte Drehung
@@ -694,10 +709,7 @@ class EnhancedDigitalClockGift {
         const currentLaps = this.landscapeLaps;
         
         // Text-Anzeige aktualisieren
-        let counterText = `Runde: ${currentLaps} von ${totalLaps}`;
-        if (currentLaps >= totalLaps && totalLaps > 0) {
-             counterText = `Runde:\n${currentLaps} von ${totalLaps}`;
-        }
+        const counterText = `Runde:\n${currentLaps} von ${totalLaps}`;
         this.lapCounterElement.textContent = counterText;
         this.lapCounterElement.style.whiteSpace = 'pre-line';
 
@@ -718,7 +730,7 @@ class EnhancedDigitalClockGift {
         let outlineColor = '';
         let fontSize = '1em';
         let fontWeight = 'normal';
-        
+
         if (progress >= 100) {
             color = '#2ecc71'; // Grün
             outlineColor = '#142403ff';
@@ -822,6 +834,79 @@ class EnhancedDigitalClockGift {
         const longer = Math.max(str1.length, str2.length);
         // Gibt einen Ähnlichkeits-Score von 0.0 bis 1.0 zurück
         return (longer - distance) / longer;
+    }
+
+    // NEU: Diese Methode komplett hinzufügen
+    startEhrenrundeAnimation() {
+        const cyclist = document.getElementById('landscape-cyclist');
+        const container = document.getElementById('landscape-slideshow');
+        
+        if (!cyclist || !container) return;
+        
+        const rect = container.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        // Ehrenrunden-Setup
+        cyclist.style.opacity = '1';
+        cyclist.textContent = '🏆';
+        cyclist.classList.add('trophy');
+        if (this.lapCounterElement) {
+            this.lapCounterElement.textContent = 'Ehrenrunde!';
+            this.lapCounterElement.classList.add('glowing-green');
+        }
+        if (this.victoryAudio) this.victoryAudio.play();
+        this.ambientSounds.forEach(sound => { if(sound) sound.pause(); });
+
+        const margin = 48; 
+        // const cyclistSize = 48; 
+        const pathTop = margin - 13;
+        const pathBottom = rect.height - margin;
+        const pathLeft = margin - 13;
+        const pathRight = rect.width - margin;
+
+        const pathWidth = pathRight - pathLeft;
+        const pathHeight = pathBottom - pathTop;
+        const perimeter = (pathWidth + pathHeight) * 2;
+        
+        let distance = 0;
+        const speed = 3; // Etwas schneller für die Ehrenrunde
+        let currentRotation = 180;
+
+        const animate = () => {
+            // Animation stoppt nach einer Runde
+            if (distance >= perimeter) {
+                cancelAnimationFrame(this.landscapeAnimationId);
+                this.landscapeAnimationId = null;
+                this.ehrenrundeCompleted = true; // Setzt den "erledigt"-Status
+                if (this.victoryAudio) this.victoryAudio.pause();
+                cyclist.style.opacity = '0';
+                return;
+            }
+
+            distance += speed; // Lässt den Zähler einfach hochlaufen, kein Loop
+
+            let x = 0, y = 0;
+            let targetRotation = 0;
+
+            if (distance < pathWidth) {
+                x = pathLeft + distance; y = pathBottom; targetRotation = 0;
+            } else if (distance < pathWidth + pathHeight) {
+                x = pathRight; y = pathBottom - (distance - pathWidth); targetRotation = 270;
+            } else if (distance < (pathWidth * 2) + pathHeight) {
+                x = pathRight - (distance - (pathWidth + pathHeight)); y = pathTop; targetRotation = 180;
+            } else {
+                x = pathLeft; y = pathTop + (distance - (pathWidth * 2 + pathHeight)); targetRotation = 90;
+            }
+
+            let diff = targetRotation - currentRotation;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            currentRotation += diff * 0.1;
+
+            cyclist.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${currentRotation}deg) scaleX(-1)`;
+            this.landscapeAnimationId = requestAnimationFrame(animate);
+        };
+        this.landscapeAnimationId = requestAnimationFrame(animate);
     }
 }
 

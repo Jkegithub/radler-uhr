@@ -302,3 +302,9 @@ header p {
 .clock-face.chiming { animation: chimeGlow 2s ease; }
 
 @keyframes fadeInOut { 0% { opacity: 0; transform: translate(-50%, -60%); } 10% { opacity: 1; transform: translate(-50%, -50%); } 90% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -40%); } }
+
+/* NEU: Styling für die Trophäe in der Ehrenrunde */
+#landscape-cyclist.trophy {
+    font-size: 4em; /* Etwas größer als der Radler */
+    filter: drop-shadow(0 0 10px gold); /* Goldener Glanz */
+}
