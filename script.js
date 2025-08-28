@@ -32,6 +32,10 @@ class EnhancedDigitalClockGift {
         this.quizQuestionsAnswered = 0;
         this.quizCorrectAnswers = 0;
         this.landscapeLaps = 0; // NEU: Zähler für die Runden
+        // NEU: Gedächtnis für erreichte Fortschritts-Meilensteine
+        this.milestone30Reached = false;
+        this.milestone60Reached = false;
+        this.milestone100Reached = false;
 
         // NEU: Zentrale Liste für alle Bilder der Slideshow
         // Hier pflegst du alle Bilder, die du im Ordner hast und zeigen möchtest.
@@ -183,6 +187,7 @@ class EnhancedDigitalClockGift {
         this.fanfareAudio = document.getElementById('fanfare-sound'); 
         this.snoozeAudio = document.getElementById('snooze-sound');
         this.snoozingArmchair = document.getElementById('snoozing-armchair');
+        this.progressAudio = document.getElementById('progress-sound');
     }
     
     loadSettings() {
@@ -208,6 +213,7 @@ class EnhancedDigitalClockGift {
         // NEU: Lautstärke für Tick und Tack setzen
         if (this.tickAudio) this.tickAudio.volume = mainVolume * 0.5; // Etwas leiser
         if (this.tackAudio) this.tackAudio.volume = mainVolume * 0.5; // Etwas leiser
+        if (this.progressAudio) this.progressAudio.volume = mainVolume;
         this.ambientSounds.forEach(sound => { if (sound) sound.volume = ambientVolume; });
         if (this.volumeDisplay) this.volumeDisplay.textContent = `${value}%`;
         localStorage.setItem('clockVolume', value);
@@ -436,19 +442,38 @@ class EnhancedDigitalClockGift {
     }
     
     checkSpecialTimes(hours, minutes, seconds) {
+        const now = this.getNow();
+        const month = now.getMonth() + 1; // +1, da Monate von 0-11 gezählt werden
+        const day = now.getDate();
+
         if (hours === 0 && minutes === 0 && seconds === 0) {
-            this.showSpecialAnimation('🌙 Mitternacht! 🌙');
+            this.showSpecialAnimation({ 
+                title: '🌙 Mitternacht', 
+                text: 'Ein neuer Tag beginnt!' // <-- HIER TEXT FÜR MITTERNACHT ÄNDERN
+            });
             this.playMidnightSound();
         }
         if (hours === 12 && minutes === 0 && seconds === 0) {
-            this.showSpecialAnimation('☀️ Mittag! ☀️');
+            this.showSpecialAnimation({
+                title: '☀️ Mittag',
+                text: 'Zeit für eine Pause!' // <-- HIER TEXT FÜR MITTAG ÄNDERN
+            });
         }
-    }
 
-    playMidnightSound() {
-        if (this.midnightAudio && this.midnightAudio.readyState >= 2) {
-            this.midnightAudio.currentTime = 0;
-            this.midnightAudio.play();
+        // Bonus: Beispiel für eine Feiertagsnachricht (siehe Punkt 3)
+        if (month === 12 && day === 24) {
+             this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
+        }
+        if (month === 9 && day === 6) {
+            this.showSpecialAnimation({ title: '🎉 Du hast GEBURTSTAG', text: 'Herzlichen GLÜCKWUNSCH 🎉' });
+        }
+        // Beispiel für Neujahr
+        if (month === 1 && day === 1) {
+            this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
+        }
+        // Beispiel für 1. Mai
+        if (month === 5 && day === 1) {
+            this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
         }
     }
     
@@ -558,6 +583,9 @@ class EnhancedDigitalClockGift {
         cyclist.style.opacity = '1';
 
         // Runden auf 0 zurücksetzen und Anzeige initialisieren
+        this.milestone30Reached = false;
+        this.milestone60Reached = false;
+        this.milestone100Reached = false;
         this.landscapeLaps = 0;
         this.updateLapCounter();
         
@@ -665,21 +693,32 @@ class EnhancedDigitalClockGift {
         const totalLaps = this.slideshowImages.length;
         const currentLaps = this.landscapeLaps;
         
-        // Text aktualisieren (Runde X von Y) - Mit Zeilenumbruch, wenn Ziel erreicht
+        // Text-Anzeige aktualisieren
         let counterText = `Runde: ${currentLaps} von ${totalLaps}`;
         if (currentLaps >= totalLaps && totalLaps > 0) {
-             counterText = `Runde:\n${currentLaps} von ${totalLaps}`; // Zeilenumbruch hinzufügen
+             counterText = `Runde:\n${currentLaps} von ${totalLaps}`;
         }
         this.lapCounterElement.textContent = counterText;
+        this.lapCounterElement.style.whiteSpace = 'pre-line';
 
-        // Stil basierend auf Fortschritt anpassen (unverändert)
+        const progress = totalLaps > 0 ? (currentLaps / totalLaps) * 100 : 0;
+
+        // Sound bei Fortschritts-Sprüngen abspielen
+        if (progress >= 30 && !this.milestone30Reached) {
+            if (this.progressAudio) this.progressAudio.play();
+            this.milestone30Reached = true;
+        }
+        if (progress >= 60 && !this.milestone60Reached) {
+            if (this.progressAudio) this.progressAudio.play();
+            this.milestone60Reached = true;
+        }
+
+        // Stil basierend auf Fortschritt anpassen
         let color = '';
         let outlineColor = '';
         let fontSize = '1em';
         let fontWeight = 'normal';
         
-        const progress = totalLaps > 0 ? (currentLaps / totalLaps) * 100 : 0;
-   
         if (progress >= 100) {
             color = '#2ecc71'; // Grün
             outlineColor = '#142403ff';
@@ -697,7 +736,7 @@ class EnhancedDigitalClockGift {
             fontWeight = 'normal';
         } else {
             color = '#000000'; // Schwarz (0-30%)
-            outlineColor = '#f70606ff';
+            outlineColor = '#d3f706ff';
             fontSize = '1em';
             fontWeight = 'normal';
         }
