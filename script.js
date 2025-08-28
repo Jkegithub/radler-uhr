@@ -283,7 +283,7 @@ class EnhancedDigitalClockGift {
         // NEU: Sekundengenaue Prüfung für Theme-Wechsel
         let expectedPeriod = 'day';
         if (hours >= 5 && hours <= 7) { expectedPeriod = 'morning'; }
-        else if (hours >= 17 && hours <= 22) { expectedPeriod = 'evening'; }
+        else if (hours >= 18 && hours <= 22) { expectedPeriod = 'evening'; }
         else if (hours >= 23 || hours <= 4) { expectedPeriod = 'night'; }
         
         if (expectedPeriod !== this.currentPeriod) {
@@ -523,70 +523,76 @@ class EnhancedDigitalClockGift {
         }
 
         if (!start || !cyclist || !container) {
-            if (cyclist) cyclist.style.opacity = '0';
+            if(cyclist) cyclist.style.opacity = '0';
             return;
         }
-
+        
         const rect = container.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
         cyclist.style.opacity = '1';
 
-        const margin = 20;
-        const pathWidth = rect.width - margin * 2;
-        const pathHeight = rect.height - margin * 2;
-        const perimeter = (pathWidth + pathHeight) * 2;
+        // --- KORREKTUR ABSTAND ---
+        // Dies ist jetzt der exakte, gleichmäßige Abstand auf allen 4 Seiten
+        const margin = 48; 
 
+        // Symmetrische Pfadberechnung
+        const pathTop = margin - 13;
+        const pathBottom = rect.height - margin; 
+        const pathLeft = margin - 13;
+        const pathRight = rect.width - margin; 
+
+        const pathWidth = pathRight - pathLeft;
+        const pathHeight = pathBottom - pathTop;
+        const perimeter = (pathWidth + pathHeight) * 2;
+        
         let distance = 0;
         const speed = 3;
-
-        // Startwinkel
-        let currentRotation = 0;
+        let currentRotation = 180; // Startwinkel für einen gespiegelten Radler, der nach rechts fährt
 
         const animate = () => {
             distance = (distance + speed) % perimeter;
 
             let x = 0, y = 0;
             let targetRotation = 0;
-            
-            const cyclistSize = 48; 
 
             if (distance < pathWidth) {
                 // Etappe 1: Unten, fährt nach rechts
-                x = margin + distance;
-                y = rect.height - margin - cyclistSize;
-                targetRotation = 0; // KORRIGIERT
+                x = pathLeft + distance;
+                y = pathBottom;
+                targetRotation = 0; // KORRIGIERTE DREHUNG
             } else if (distance < pathWidth + pathHeight) {
                 // Etappe 2: Rechts, fährt nach oben
-                x = rect.width - margin - cyclistSize;
-                y = rect.height - margin - cyclistSize - (distance - pathWidth);
-                targetRotation = 270; // KORRIGIERT
+                x = pathRight;
+                y = pathBottom - (distance - pathWidth);
+                targetRotation = 270; // KORRIGIERTE DREHUNG
             } else if (distance < (pathWidth * 2) + pathHeight) {
                 // Etappe 3: Oben, fährt nach links
-                x = rect.width - margin - cyclistSize - (distance - (pathWidth + pathHeight));
-                y = margin;
-                targetRotation = 180; // KORRIGIERT
+                x = pathRight - (distance - (pathWidth + pathHeight));
+                y = pathTop;
+                targetRotation = 180; // KORRIGIERTE DREHUNG
             } else {
                 // Etappe 4: Links, fährt nach unten
-                x = margin;
-                y = margin + (distance - (pathWidth * 2 + pathHeight));
-                targetRotation = 90; // KORRIGIERT
+                x = pathLeft;
+                y = pathTop + (distance - (pathWidth * 2 + pathHeight));
+                targetRotation = 90; // KORRIGIERTE DREHUNG
             }
 
-            // Sanfte Drehung (Interpolation)
+            // Sanfte Drehung
             let diff = targetRotation - currentRotation;
             if (diff > 180) diff -= 360;
             if (diff < -180) diff += 360;
-            currentRotation += diff * 0.02;
+            currentRotation += diff * 0.1;
 
-            // Wende die Transformation an: IMMER gespiegelt, dann gedreht
-            cyclist.style.transform = `translate(${x}px, ${y}px) rotate(${currentRotation}deg) scaleX(-1)`;
+            // Wende die Transformation an: IMMER gespiegelt, dann gedreht.
+            // Das translate(-50%,-50%) zentriert den Radler auf dem berechneten Pfadpunkt.
+            cyclist.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${currentRotation}deg) scaleX(-1)`;
 
             this.landscapeAnimationId = requestAnimationFrame(animate);
         };
         this.landscapeAnimationId = requestAnimationFrame(animate);
     }
-    
+
     showRandomSurprise() {
         if (Math.random() < 0.5) {
             const spruch = this.sprueche[Math.floor(Math.random() * this.sprueche.length)];

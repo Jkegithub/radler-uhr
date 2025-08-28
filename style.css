@@ -178,10 +178,24 @@ header p {
     color: #3ce1e7; /* Helles, kräftiges Rot für bessere Lesbarkeit */
 }
 
-#landscape-container { width: 85vw; height: 75vh; max-width: 1200px; position: relative; }
+#landscape-container { 
+    width: 85vw; 
+    height: 75vh; 
+    max-width: 800px; 
+    position: relative; 
+}
+
 #landscape-slideshow {
     width: 100%;
     height: 100%;
+    /* NEU: Rahmen und runde Ecken */
+    border: 8px solid #2ecc71; 
+    /* Dick, hellgrün */
+    border-radius: 20px; 
+    /* Runde Ecken */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); 
+    /* Leichter Schatten für Tiefe */
+
     /* box-shadow: 0 10px 30px rgba(0,0,0,0.3); Entfernt */
     /* Hintergrund-Eigenschaften angepasst */
     background-size: contain; /* <-- Geändert von 'cover' zu 'contain' */
