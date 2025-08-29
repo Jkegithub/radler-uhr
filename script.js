@@ -805,7 +805,7 @@ class EnhancedDigitalClockGift {
             const index = Math.floor(Math.random() * this.sprueche.length);
             const spruch = this.sprueche[index];
             const counter = `Spruch ${index + 1} / ${this.sprueche.length}`;
-            this.showSpecialAnimation({ title: '💡 Spruch des Moments', text: spruch, counter: counter });
+            this.showSpecialAnimation({ title: '💡 Spruch des Tages', text: spruch, counter: counter });
         }
     }
     
