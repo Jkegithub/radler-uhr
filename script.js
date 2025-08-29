@@ -636,9 +636,12 @@ class EnhancedDigitalClockGift {
         
         let distance = 0;
         const speed = 3;
-        let currentRotation = 180; 
         // Startwinkel für einen gespiegelten Radler, der nach rechts fährt
-
+        let currentRotation = 180;
+        // --- NEUE, ROBUSTERE ZÄHLMETHODE ---
+        let lastStage = 3; 
+        // Startet bei der "letzten" Etappe, um die erste Runde korrekt zu zählen
+ 
         const animate = () => {
             // "Gewonnen"-Logik, nur im normalen Spielmodus
             if (!this.gameWon && this.landscapeLaps >= this.slideshowImages.length && this.slideshowImages.length > 0) {
@@ -656,36 +659,47 @@ class EnhancedDigitalClockGift {
             distance = (distance + speed) % perimeter;
             
             // Runden zählen, nur im normalen Spielmodus
-            const remainingDistance = perimeter - distance;
-            if (!this.gameWon && remainingDistance < speed && distance > 0) {
-                this.landscapeLaps++;
-                this.updateLapCounter();
-            }
 
             let x = 0, y = 0;
             let targetRotation = 0;
+            let currentStage = 0; // Aktuelle Etappe in diesem Frame
 
             if (distance < pathWidth) {
                 // Etappe 1: Unten, fährt nach rechts
+                currentStage = 0; // Etappe 1: Unten
                 x = pathLeft + distance;
                 y = pathBottom;
                 targetRotation = 0; // KORRIGIERTE DREHUNG
             } else if (distance < pathWidth + pathHeight) {
                 // Etappe 2: Rechts, fährt nach oben
+                currentStage = 1; // Etappe 2: Rechts
                 x = pathRight;
                 y = pathBottom - (distance - pathWidth);
                 targetRotation = 270; // KORRIGIERTE DREHUNG
             } else if (distance < (pathWidth * 2) + pathHeight) {
                 // Etappe 3: Oben, fährt nach links
+                currentStage = 2; // Etappe 3: Oben
                 x = pathRight - (distance - (pathWidth + pathHeight));
                 y = pathTop;
                 targetRotation = 180; // KORRIGIERTE DREHUNG
             } else {
                 // Etappe 4: Links, fährt nach unten
+                currentStage = 3; // Etappe 4: Links
                 x = pathLeft;
                 y = pathTop + (distance - (pathWidth * 2 + pathHeight));
                 targetRotation = 90; // KORRIGIERTE DREHUNG
             }
+            // --- HIER IST DIE NEUE ZÄHLUNG ---
+            // Wenn die aktuelle Etappe 0 ist (unterer Rand) und die letzte Etappe 3 war (linker Rand),
+            // dann wurde gerade eine komplette Runde beendet.
+            if (currentStage === 0 && lastStage === 3) {
+                if (!this.gameWon) {
+                    this.landscapeLaps++;
+                    this.updateLapCounter();
+                }
+            }
+            lastStage = currentStage; // Merkt sich die Etappe für den nächsten Frame
+
 
             // Sanfte Drehung
             let diff = targetRotation - currentRotation;
@@ -713,7 +727,7 @@ class EnhancedDigitalClockGift {
         this.lapCounterElement.textContent = counterText;
         this.lapCounterElement.style.whiteSpace = 'pre-line';
 
-        const progress = totalLaps > 0 ? (currentLaps / totalLaps) * 100 : 0;
+        const progress = totalLaps > 0 ? ((currentLaps - 1) / totalLaps) * 100 : 0;
 
         // Sound bei Fortschritts-Sprüngen abspielen
         if (progress >= 30 && !this.milestone30Reached) {
