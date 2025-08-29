@@ -858,7 +858,6 @@ class EnhancedDigitalClockGift {
         this.ambientSounds.forEach(sound => { if(sound) sound.pause(); });
 
         const margin = 48; 
-        // const cyclistSize = 48; 
         const pathTop = margin - 13;
         const pathBottom = rect.height - margin;
         const pathLeft = margin - 13;
@@ -869,21 +868,30 @@ class EnhancedDigitalClockGift {
         const perimeter = (pathWidth + pathHeight) * 2;
         
         let distance = 0;
-        const speed = 3; // Etwas schneller für die Ehrenrunde
+        const speed = 3;
         let currentRotation = 180;
+        
+        // NEU: Zähler für die Ehrenrunden
+        let lapsCompleted = 0;
 
         const animate = () => {
-            // Animation stoppt nach einer Runde
+            distance += speed;
+
+            // Wenn eine Runde beendet ist, setze die Distanz zurück und zähle die Runde hoch
             if (distance >= perimeter) {
+                distance = 0; // Distanz für die nächste Runde zurücksetzen
+                lapsCompleted++;
+            }
+
+            // Animation stoppt nach ZWEI Runden
+            if (lapsCompleted >= 3) {
                 cancelAnimationFrame(this.landscapeAnimationId);
                 this.landscapeAnimationId = null;
-                this.ehrenrundeCompleted = true; // Setzt den "erledigt"-Status
+                this.ehrenrundeCompleted = true;
                 if (this.victoryAudio) this.victoryAudio.pause();
                 cyclist.style.opacity = '0';
                 return;
             }
-
-            distance += speed; // Lässt den Zähler einfach hochlaufen, kein Loop
 
             let x = 0, y = 0;
             let targetRotation = 0;
