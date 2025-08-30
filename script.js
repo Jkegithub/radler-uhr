@@ -193,6 +193,7 @@ class EnhancedDigitalClockGift {
         this.snoozingArmchair = document.getElementById('snoozing-armchair');
         this.progressAudio = document.getElementById('progress-sound');
         this.victoryAudio = document.getElementById('victory-music');
+        this.newLapAudio = document.getElementById('new-lap-sound');
     }
     
     loadSettings() {
@@ -220,6 +221,7 @@ class EnhancedDigitalClockGift {
         if (this.tackAudio) this.tackAudio.volume = mainVolume * 0.5; // Etwas leiser
         if (this.progressAudio) this.progressAudio.volume = mainVolume;
         if (this.victoryAudio) this.victoryAudio.volume = mainVolume * 0.7;
+        if (this.newLapAudio) this.newLapAudio.volume = mainVolume;
         this.ambientSounds.forEach(sound => { if (sound) sound.volume = ambientVolume; });
         if (this.volumeDisplay) this.volumeDisplay.textContent = `${value}%`;
         localStorage.setItem('clockVolume', value);
@@ -696,6 +698,11 @@ class EnhancedDigitalClockGift {
                 if (!this.gameWon) {
                     this.landscapeLaps++;
                     this.updateLapCounter();
+                    // NEU: Sound für neue Runde abspielen
+                    if (this.newLapAudio) {
+                        this.newLapAudio.currentTime = 0;
+                        this.newLapAudio.play();
+                    }
                 }
             }
             lastStage = currentStage; // Merkt sich die Etappe für den nächsten Frame
