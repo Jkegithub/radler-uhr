@@ -191,6 +191,7 @@ class EnhancedDigitalClockGift {
         this.fanfareAudio = document.getElementById('fanfare-sound'); 
         this.snoozeAudio = document.getElementById('snooze-sound');
         this.snoozingArmchair = document.getElementById('snoozing-armchair');
+        this.ehrenrundeButton = document.getElementById('ehrenrunde-button');
         this.progressAudio = document.getElementById('progress-sound');
         this.victoryAudio = document.getElementById('victory-music');
         this.newLapAudio = document.getElementById('new-lap-sound');
@@ -242,6 +243,16 @@ class EnhancedDigitalClockGift {
         // NEU: Event Listener für den Tick-Tack-Schalter
         if (this.tickTockToggle) this.tickTockToggle.addEventListener('click', () => this.toggleTickTock());
         this.setupKeyboardShortcuts();
+
+        // NEU: Event Listener für den Ehrenrunden-Button
+        if (this.ehrenrundeButton) {
+            this.ehrenrundeButton.addEventListener('click', () => {
+                this.ehrenrundeButton.style.display = 'none'; // Button ausblenden
+                // Das normale Spiel stoppen und die Ehrenrunde starten
+                this.startOrStopLandscapeAnimation(false); // Stoppt den Radler
+                requestAnimationFrame(() => { this.startEhrenrundeAnimation(); });
+            });
+        }
     }
 
     setupKeyboardShortcuts() {
@@ -535,12 +546,18 @@ class EnhancedDigitalClockGift {
                 // NEUE 3-STUFEN-LOGIK
                 if (this.gameWon) {
                     if (this.ehrenrundeCompleted) {
-                        // Zustand 3: Spiel gewonnen, Ehrenrunde absolviert
                         this.showSpecialAnimation({ title: 'Spiel beendet', text: 'Du hast schon gewonnen! :-)', counter: 'Lade die Seite neu für ein neues Spiel.' });
-                        document.getElementById('landscape-cyclist').style.opacity = '0'; // Radler ausblenden
+                        document.getElementById('landscape-cyclist').style.opacity = '0';
                     } else {
-                        // Zustand 2: Spiel gewonnen, starte Ehrenrunde
-                        requestAnimationFrame(() => { this.startEhrenrundeAnimation(); });
+                        // NEU: Wenn das Spiel gewonnen ist und Ehrenrunde noch nicht, Button zeigen.
+                        // Die Ehrenrunde startet JETZT NICHT automatisch mehr hier, sondern über den Button!
+                        this.showSpecialAnimation({ title: 'Ziel erreicht!', text: "GEWONNEN! 🎉", counter: `Gesamt: ${this.slideshowImages.length} Runden` });
+                        if (this.ehrenrundeButton) this.ehrenrundeButton.style.display = 'block';
+                        document.getElementById('landscape-cyclist').style.opacity = '0'; // Radler/Trophäe unsichtbar machen
+                        if (this.snoozingArmchair) this.snoozingArmchair.style.display = 'block'; // Sessel sichtbar lassen
+                        // Stoppe auch die Musik falls sie noch lief und der Nutzer zurück zum Landscape-View ist
+                        if (this.victoryAudio) this.victoryAudio.pause(); 
+                        if (this.snoozeAudio) this.snoozeAudio.play();
                     }
                 } else {
                     // Zustand 1: Normales Spiel starten
@@ -637,15 +654,15 @@ class EnhancedDigitalClockGift {
         const perimeter = (pathWidth + pathHeight) * 2;
         
         let distance = 0;
-        const speed = 3;
+        const speed = 9;
         // Startwinkel für einen gespiegelten Radler, der nach rechts fährt
         let currentRotation = 180;
         // --- NEUE, ROBUSTERE ZÄHLMETHODE ---
-        let lastStage = 3; 
+        let lastStage = 2; //achtung 3
         // Startet bei der "letzten" Etappe, um die erste Runde korrekt zu zählen
  
         const animate = () => {
-            // "Gewonnen"-Logik, nur im normalen Spielmodus
+            // "Gewonnen"-Logik, nur im normalen Spielmodus Achtung >= gestrichen
             if (!this.gameWon && this.landscapeLaps >= this.slideshowImages.length && this.slideshowImages.length > 0) {
                 cancelAnimationFrame(this.landscapeAnimationId);
                 this.gameWon = true; // NEU: Setzt den Gewonnen-Status
@@ -655,6 +672,10 @@ class EnhancedDigitalClockGift {
                 cyclist.style.display = 'none';
                 if (this.snoozingArmchair) this.snoozingArmchair.style.display = 'block';
                 if (this.snoozeAudio) this.snoozeAudio.play();
+                // NEU: Ehrenrunden-Button einblenden
+                if (this.ehrenrundeButton) {
+                    this.ehrenrundeButton.style.display = 'block';
+                }
                 return;
             }
 
@@ -734,8 +755,7 @@ class EnhancedDigitalClockGift {
         this.lapCounterElement.textContent = counterText;
         this.lapCounterElement.style.whiteSpace = 'pre-line';
 
-        const progress = totalLaps > 0 ? ((currentLaps - 1) / totalLaps) * 100 : 0;
-
+        const progress = totalLaps > 0 ? ((currentLaps - 3) / totalLaps) * 100 : 0;
         // Sound bei Fortschritts-Sprüngen abspielen
         if (progress >= 30 && !this.milestone30Reached) {
             if (this.progressAudio) this.progressAudio.play();
@@ -857,7 +877,7 @@ class EnhancedDigitalClockGift {
         return (longer - distance) / longer;
     }
 
-    // NEU: Diese Methode komplett hinzufügen
+        // NEU: Diese Methode komplett hinzufügen
     startEhrenrundeAnimation() {
         const cyclist = document.getElementById('landscape-cyclist');
         const container = document.getElementById('landscape-slideshow');

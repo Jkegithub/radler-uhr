@@ -308,3 +308,33 @@ header p {
     font-size: 4em; /* Etwas größer als der Radler */
     filter: drop-shadow(0 0 10px gold); /* Goldener Glanz */
 }
+
+/* NEU: Styling für den Ehrenrunden-Button */
+    #ehrenrunde-button {
+        position: absolute;
+        top: 65%; /* Etwas unterhalb des Sessels */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: white;
+        background-color: #28a745; /* Grüner Button */
+        border: 2px solid #218838;
+        border-radius: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        z-index: 10; /* Über allem anderen */
+    }
+
+    #ehrenrunde-button:hover {
+        background-color: #218838;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    #ehrenrunde-button:active {
+        background-color: #1e7e34;
+        transform: translate(-50%, -50%) scale(0.98);
+    }
+
