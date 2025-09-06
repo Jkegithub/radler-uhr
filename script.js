@@ -7,9 +7,7 @@ class EnhancedDigitalClockGift {
         this.startClock();
         this.setupChimeScheduler();
         this.animateBike();
-        // this.updateThemeByTime();
-        // setInterval(() => this.updateThemeByTime(), 60000 * 5);
-        this.checkHolidayEvents(); // NEU: Sofortiger Check beim Start
+        this.checkHolidayEvents(); // <-- DIESE ZEILEN HINZUFÜGEN
     }
 
     initializeProperties() {
@@ -42,7 +40,8 @@ class EnhancedDigitalClockGift {
         // NEU: Merkt sich, ob die Ehrenrunde beendet ist
         this.ehrenrundeCompleted = false; 
         // NEU: Merkt sich, ob die Nachricht schon gezeigt wurde
-        this.birthdayMessageShown = false; 
+        this.birthdayMessageCount = 0;
+        this.lastBirthdayHour = -1;
         
         // NEU: Zentrale Liste für alle Bilder der Slideshow
         // Hier pflegst du alle Bilder, die du im Ordner hast und zeigen möchtest.
@@ -874,15 +873,25 @@ class EnhancedDigitalClockGift {
         return (longer - distance) / longer;
     }
 
-    // NEU: Diese Funktion prüft einmal pro Stunde die Feiertage
     checkHolidayEvents() {
+        console.log("--- Prüfe Feiertage beim Laden der Seite ---");
+        
         const now = this.getNow();
         const hours = now.getHours();
         const month = now.getMonth() + 1;
         const day = now.getDate();
 
-        // Geburtstags-Check (einmal pro Stunde, max. 24 Mal pro Tag)
-        if (month === 9 && day === 6 && this.birthdayMessageCount < 24 && hours !== this.lastBirthdayHour) {
+        console.log(`Datum wird geprüft: Monat=${month}, Tag=${day}, Stunde=${hours}`);
+
+        // Geburtstags-Bedingungen einzeln prüfen
+        const isBirthdayDate = (month === 9 && day === 6);
+        const isCounterOk = (this.birthdayMessageCount < 24);
+        const isNewHour = (hours !== this.lastBirthdayHour);
+
+        console.log(`Geburtstags-Check: Datum passt=${isBirthdayDate}, Zähler passt=${isCounterOk}, Stunde neu=${isNewHour}`);
+
+        if (isBirthdayDate && isCounterOk && isNewHour) {
+            console.log("==> Alle Bedingungen erfüllt! Zeige Geburtstagsnachricht.");
             this.birthdayMessageCount++;
             this.lastBirthdayHour = hours;
             this.showSpecialAnimation({ 
@@ -890,27 +899,11 @@ class EnhancedDigitalClockGift {
                 text: 'Herzlichen GLÜCKWUNSCH!',
                 counter: `( ${this.birthdayMessageCount} / 24 )`
             });
+        } else {
+            console.log("==> NICHT alle Bedingungen erfüllt. Keine Nachricht wird gezeigt.");
         }
 
-        // Andere Feiertags-Checks (werden jetzt auch nur noch stündlich geprüft)
-                if (month === 12 && day === 24) {
-                    this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 25) {
-                    this.showSpecialAnimation({ title: '🎄 1. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 26) {
-                    this.showSpecialAnimation({ title: '🎄 2. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 27) {
-                    this.showSpecialAnimation({ title: '🎄 3. WEIHNACHTEN', text: 'Wir kommen aus dem Feiern \n nicht mehr raus' });
-                }
-                if (month === 1 && day === 1) {
-                    this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
-                }
-                if (month === 5 && day === 1) {
-                    this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
-                }
+        // Andere Feiertage (vorerst ignoriert, um den Fehler einzugrenzen)
     }
 
         // NEU: Diese Methode komplett hinzufügen
