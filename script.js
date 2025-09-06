@@ -40,7 +40,9 @@ class EnhancedDigitalClockGift {
         this.gameWon = false; 
         // NEU: Merkt sich, ob die Ehrenrunde beendet ist
         this.ehrenrundeCompleted = false; 
-
+        // NEU: Merkt sich, ob die Nachricht schon gezeigt wurde
+        this.birthdayMessageShown = false; 
+        
         // NEU: Zentrale Liste für alle Bilder der Slideshow
         // Hier pflegst du alle Bilder, die du im Ordner hast und zeigen möchtest.
         this.slideshowImages = [
@@ -376,12 +378,48 @@ class EnhancedDigitalClockGift {
     setupChimeScheduler() {
         setInterval(() => {
             const now = this.getNow();
-            if (this.chimeEnabled && now.getMinutes() === 0 && now.getSeconds() === 0 && now.getHours() !== this.lastChimeHour) {
-                this.lastChimeHour = now.getHours();
+            // Diese Bedingung ist NUR zur vollen Stunde wahr (xx:00:00 Uhr)
+            if (this.chimeEnabled && now.getMinutes() === 0 && now.getSeconds() === 0) {
+                
+                // 1. Der normale Stundenschlag wird ausgeführt
                 this.playChime();
                 if(this.clockFace) this.showChimeAnimation();
-            } else if (now.getMinutes() !== 0) {
-                this.lastChimeHour = -1;
+
+                // --- NEU: HIER KOMMT DIE FEIERTAGS-LOGIK HIN ---
+                const hours = now.getHours();
+                const month = now.getMonth() + 1;
+                const day = now.getDate();
+
+                // Geburtstags-Check (nur einmal pro Stunde, max. 24 Mal pro Tag)
+                if (month === 9 && day === 6 && this.birthdayMessageCount < 24 && hours !== this.lastBirthdayHour) {
+                    this.birthdayMessageCount++;
+                    this.lastBirthdayHour = hours;
+                    this.showSpecialAnimation({ 
+                        title: '🎉 Du hast GEBURTSTAG', 
+                        text: 'Herzlichen GLÜCKWUNSCH 🎉',
+                        counter: `( ${this.birthdayMessageCount} / 24 )`
+                    });
+                }
+
+                // Andere Feiertags-Checks (werden jetzt auch nur noch stündlich geprüft)
+                if (month === 12 && day === 24) {
+                    this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 25) {
+                    this.showSpecialAnimation({ title: '🎄 1. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 26) {
+                    this.showSpecialAnimation({ title: '🎄 2. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 27) {
+                    this.showSpecialAnimation({ title: '🎄 3. WEIHNACHTEN', text: 'Wir kommen aus dem Feiern \n nicht mehr raus' });
+                }
+                if (month === 1 && day === 1) {
+                    this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
+                }
+                if (month === 5 && day === 1) {
+                    this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
+                }
             }
         }, 1000);
     }
@@ -440,59 +478,52 @@ class EnhancedDigitalClockGift {
     }
 
     showSpecialAnimation(options) {
-        const duration = options.duration || 7000;
         const overlay = document.createElement('div');
         overlay.style.cssText = `
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: linear-gradient(135deg, rgba(46,204,113,0.95), rgba(39,174,96,0.95));
             color: white; padding: 30px 50px; border-radius: 25px;
             font-size: 24px; z-index: 6000; text-align: center;
-            max-width: 80%; animation: fadeInOut ${duration / 1000}s ease-in-out;`;
+            max-width: 80%;
+            cursor: pointer; /* NEU: Zeigt an, dass man klicken kann */
+            animation: fadeIn 0.5s ease-out; /* NEU: Reine Einblend-Animation */
+        `;
 
-        // Baut die neue HTML-Struktur mit Titel, Text und Zähler auf
+        // Baut die HTML-Struktur mit Titel, Text und einem neuen Hinweis auf
         overlay.innerHTML = `
             <h3 style="margin: 0 0 10px 0; font-size: 0.8em; opacity: 0.9; font-weight: normal;">${options.title || ''}</h3>
             <p style="margin: 0; font-weight: bold;">${options.text || ''}</p>
             <span style="display: block; margin-top: 15px; font-size: 0.6em; opacity: 0.8; font-weight: normal;">${options.counter || ''}</span>
+            <div style="font-size: 0.5em; opacity: 0.7; margin-top: 20px;">(Zum Schließen klicken)</div>
         `;
         
+        // NEU: Fügt den Event Listener hinzu, der die Nachricht beim Klick entfernt
+        overlay.addEventListener('click', () => {
+            overlay.remove();
+        });
+        
         document.body.appendChild(overlay);
-        setTimeout(() => overlay.remove(), duration);
+        
+        // ENTFERNT: Der alte setTimeout zum automatischen Ausblenden
+        // setTimeout(() => overlay.remove(), duration);
     }
     
     checkSpecialTimes(hours, minutes, seconds) {
-        const now = this.getNow();
-        const month = now.getMonth() + 1; // +1, da Monate von 0-11 gezählt werden
-        const day = now.getDate();
+        // Diese Funktion prüft jetzt NUR NOCH sekundengenaue Events.
+        // Alle Feiertage werden im setupChimeScheduler geprüft.
 
         if (hours === 0 && minutes === 0 && seconds === 0) {
             this.showSpecialAnimation({ 
                 title: '🌙 Mitternacht', 
-                text: 'Ein neuer Tag beginnt!' // <-- HIER TEXT FÜR MITTERNACHT ÄNDERN
+                text: 'Ein neuer Tag beginnt!'
             });
             this.playMidnightSound();
         }
         if (hours === 12 && minutes === 0 && seconds === 0) {
             this.showSpecialAnimation({
                 title: '☀️ Mittag',
-                text: 'Zeit für eine Pause!' // <-- HIER TEXT FÜR MITTAG ÄNDERN
+                text: 'Zeit für eine Pause!'
             });
-        }
-
-        // Bonus: Beispiel für eine Feiertagsnachricht (siehe Punkt 3)
-        if (month === 12 && day === 24) {
-             this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
-        }
-        if (month === 9 && day === 6) {
-            this.showSpecialAnimation({ title: '🎉 Du hast GEBURTSTAG', text: 'Herzlichen GLÜCKWUNSCH 🎉' });
-        }
-        // Beispiel für Neujahr
-        if (month === 1 && day === 1) {
-            this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
-        }
-        // Beispiel für 1. Mai
-        if (month === 5 && day === 1) {
-            this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
         }
     }
     
