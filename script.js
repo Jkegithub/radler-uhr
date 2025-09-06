@@ -9,6 +9,7 @@ class EnhancedDigitalClockGift {
         this.animateBike();
         // this.updateThemeByTime();
         // setInterval(() => this.updateThemeByTime(), 60000 * 5);
+        this.checkHolidayEvents(); // NEU: Sofortiger Check beim Start
     }
 
     initializeProperties() {
@@ -378,48 +379,13 @@ class EnhancedDigitalClockGift {
     setupChimeScheduler() {
         setInterval(() => {
             const now = this.getNow();
-            // Diese Bedingung ist NUR zur vollen Stunde wahr (xx:00:00 Uhr)
             if (this.chimeEnabled && now.getMinutes() === 0 && now.getSeconds() === 0) {
                 
-                // 1. Der normale Stundenschlag wird ausgeführt
                 this.playChime();
                 if(this.clockFace) this.showChimeAnimation();
-
-                // --- NEU: HIER KOMMT DIE FEIERTAGS-LOGIK HIN ---
-                const hours = now.getHours();
-                const month = now.getMonth() + 1;
-                const day = now.getDate();
-
-                // Geburtstags-Check (nur einmal pro Stunde, max. 24 Mal pro Tag)
-                if (month === 9 && day === 6 && this.birthdayMessageCount < 24 && hours !== this.lastBirthdayHour) {
-                    this.birthdayMessageCount++;
-                    this.lastBirthdayHour = hours;
-                    this.showSpecialAnimation({ 
-                        title: '🎉 Du hast GEBURTSTAG', 
-                        text: 'Herzlichen GLÜCKWUNSCH 🎉',
-                        counter: `( ${this.birthdayMessageCount} / 24 )`
-                    });
-                }
-
-                // Andere Feiertags-Checks (werden jetzt auch nur noch stündlich geprüft)
-                if (month === 12 && day === 24) {
-                    this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 25) {
-                    this.showSpecialAnimation({ title: '🎄 1. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 26) {
-                    this.showSpecialAnimation({ title: '🎄 2. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
-                }
-                if (month === 12 && day === 27) {
-                    this.showSpecialAnimation({ title: '🎄 3. WEIHNACHTEN', text: 'Wir kommen aus dem Feiern \n nicht mehr raus' });
-                }
-                if (month === 1 && day === 1) {
-                    this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
-                }
-                if (month === 5 && day === 1) {
-                    this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
-                }
+                
+                // NEU: Stündlicher Check für Feiertage
+                this.checkHolidayEvents(); 
             }
         }, 1000);
     }
@@ -906,6 +872,45 @@ class EnhancedDigitalClockGift {
         const longer = Math.max(str1.length, str2.length);
         // Gibt einen Ähnlichkeits-Score von 0.0 bis 1.0 zurück
         return (longer - distance) / longer;
+    }
+
+    // NEU: Diese Funktion prüft einmal pro Stunde die Feiertage
+    checkHolidayEvents() {
+        const now = this.getNow();
+        const hours = now.getHours();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+
+        // Geburtstags-Check (einmal pro Stunde, max. 24 Mal pro Tag)
+        if (month === 9 && day === 6 && this.birthdayMessageCount < 24 && hours !== this.lastBirthdayHour) {
+            this.birthdayMessageCount++;
+            this.lastBirthdayHour = hours;
+            this.showSpecialAnimation({ 
+                title: '🎉 Du hast GEBURTSTAG', 
+                text: 'Herzlichen GLÜCKWUNSCH!',
+                counter: `( ${this.birthdayMessageCount} / 24 )`
+            });
+        }
+
+        // Andere Feiertags-Checks (werden jetzt auch nur noch stündlich geprüft)
+                if (month === 12 && day === 24) {
+                    this.showSpecialAnimation({ title: '🎄 Heiligabend', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 25) {
+                    this.showSpecialAnimation({ title: '🎄 1. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 26) {
+                    this.showSpecialAnimation({ title: '🎄 2. WEIHNACHTEN', text: 'Frohe Weihnachten!' });
+                }
+                if (month === 12 && day === 27) {
+                    this.showSpecialAnimation({ title: '🎄 3. WEIHNACHTEN', text: 'Wir kommen aus dem Feiern \n nicht mehr raus' });
+                }
+                if (month === 1 && day === 1) {
+                    this.showSpecialAnimation({ title: '🎆 Neujahr', text: 'Ein frohes neues Jahr!' });
+                }
+                if (month === 5 && day === 1) {
+                    this.showSpecialAnimation({ title: 'Tag der Arbeit', text: 'Schaffe, schaffe Häusle baue :-) ' });
+                }
     }
 
         // NEU: Diese Methode komplett hinzufügen
